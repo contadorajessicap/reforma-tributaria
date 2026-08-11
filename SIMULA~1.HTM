@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador da Reforma Tributária | JP Contabilidade</title>
+<style>
+  :root {
+    --primary: #66381C;
+    --primary-dark: #4a2813;
+    --secondary: #6D5542;
+    --light: #ECD7BC;
+    --cream: #F9F4E9;
+    --accent: #747C71;
+    --highlight: #ECD7BC;
+    --gray-text: #2C332D;
+    --border: #ddc9a8;
+    --light-green: #E2E6DE;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Calibri, Arial, sans-serif;
+    background: var(--cream);
+    margin: 0;
+    padding: 0;
+    color: #2c2a20;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+  header { text-align: center; margin-bottom: 24px; }
+  header .brand { color: var(--primary); font-weight: 700; letter-spacing: 1px; font-size: 13px; text-transform: uppercase; }
+  header h1 { color: var(--primary); font-size: 26px; margin: 6px 0 4px; }
+  header p { color: var(--gray-text); font-size: 14.5px; margin: 0; }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 14px rgba(102,56,28,0.10);
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .card h2 {
+    color: var(--primary);
+    font-size: 17px;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .num {
+    background: var(--primary);
+    color: #fff;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  label { display: block; font-size: 13.5px; font-weight: 600; color: #333; margin-bottom: 5px; }
+  .hint { font-size: 12px; color: #888; margin-top: 4px; }
+  input[type=text], input[type=number], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fbfaf6;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+  .anexo-options { display: flex; gap: 10px; flex-wrap: wrap; }
+  .anexo-btn {
+    flex: 1;
+    min-width: 140px;
+    border: 1.5px solid var(--border);
+    background: #fbfaf6;
+    border-radius: 10px;
+    padding: 12px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+  }
+  .anexo-btn strong { display: block; color: var(--primary); font-size: 14px; }
+  .anexo-btn span { font-size: 11.5px; color: #777; }
+  .anexo-btn.active { border-color: var(--primary); background: var(--light); }
+  .anexo-btn:hover { border-color: var(--primary); }
+
+  .faixa-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { .faixa-options { grid-template-columns: 1fr; } }
+  .faixa-btn {
+    border: 1.5px solid var(--border);
+    background: #fbfaf6;
+    border-radius: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: all .15s;
+  }
+  .faixa-btn .rng { font-size: 13.5px; font-weight: 600; color: #333; }
+  .faixa-btn.active { border-color: var(--primary); background: var(--light); }
+  .faixa-btn:hover { border-color: var(--primary); }
+
+  .social-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 26px 0 10px; }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: background .15s;
+  }
+  .social-btn:hover { background: var(--primary-dark); }
+  .social-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .exact-toggle {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--light);
+    border: 1.5px solid var(--primary);
+    border-radius: 20px;
+    padding: 8px 14px;
+  }
+  .exact-toggle:hover { background: var(--primary); color: #fff; }
+  .exact-toggle::before { content: "✎"; font-size: 13px; }
+  #exactBox { display: none; margin-top: 12px; }
+
+  .field { margin-bottom: 14px; }
+
+  button.calc {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background .15s;
+  }
+  button.calc:hover { background: var(--primary-dark); }
+
+  #resultado { display: none; }
+
+  .faixa-badge {
+    display: inline-block;
+    background: var(--light);
+    color: var(--primary);
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+  .result-box {
+    border-radius: 12px;
+    padding: 18px 16px;
+    border: 1.5px solid var(--border);
+    text-align: center;
+  }
+  .result-box.puro { background: var(--light); border-color: #cfb98d; }
+  .result-box.hibrido { background: var(--secondary); border-color: #52402f; }
+  .result-box.hibrido .label, .result-box.hibrido .value, .result-box.hibrido .sub { color: var(--cream); }
+  .result-box.atual { background: #f1efe6; }
+  .result-box .label { font-size: 12.5px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: .4px; }
+  .result-box .value { font-size: 25px; font-weight: 800; color: #211f16; margin: 8px 0 4px; }
+  .result-box .sub { font-size: 12px; color: #55503f; line-height: 1.4; }
+
+  .verdict {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--highlight);
+    border: 1px solid #cfb98d;
+    font-size: 14px;
+    color: #4a3a1f;
+    line-height: 1.5;
+  }
+  .verdict strong { color: var(--primary-dark); }
+
+  details.breakdown { margin-top: 18px; border-top: 1px dashed var(--border); padding-top: 14px; }
+  details.breakdown summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--primary); }
+  table.detail { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  table.detail th, table.detail td { padding: 7px 9px; border-bottom: 1px solid #eee; text-align: left; }
+  table.detail th { color: #777; font-weight: 600; font-size: 12px; }
+  table.detail td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--primary); }
+  .slider-row .slider-val { min-width: 52px; font-weight: 700; color: var(--primary); text-align: right; }
+
+  .note {
+    font-size: 12px;
+    color: #888;
+    background: #f7f5ef;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  footer { text-align: center; color: #9a9482; font-size: 12px; margin-top: 30px; }
+
+  .error-msg { color: #a0522d; font-size: 13px; margin-top: 10px; display: none; }
+
+  .checkbox-field { background: var(--light-green); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; border-left: 4px solid var(--accent); }
+  .checkbox-label { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; font-weight: 700; color: var(--accent); cursor: pointer; margin-bottom: 0; }
+  .checkbox-label input[type=checkbox] { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+  .checkbox-field .hint { margin-top: 6px; margin-left: 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">JP Contabilidade</div>
+    <h1>Simulador da Reforma Tributária no Simples Nacional</h1>
+    <p>Preencha os números da sua empresa e veja, na hora, a comparação entre o DAS de hoje, o regime Puro e o regime Híbrido a partir de 2027.</p>
+  </header>
+
+  <div class="card">
+    <h2><span class="num">1</span> Em qual Anexo do Simples sua empresa se enquadra?</h2>
+    <div class="anexo-options" id="anexoOptions">
+      <div class="anexo-btn" data-anexo="I">
+        <strong>Anexo I</strong>
+        <span>Comércio</span>
+      </div>
+      <div class="anexo-btn" data-anexo="II">
+        <strong>Anexo II</strong>
+        <span>Indústria</span>
+      </div>
+      <div class="anexo-btn" data-anexo="III">
+        <strong>Anexo III</strong>
+        <span>Serviços em geral</span>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px;">Não sabe qual é o seu anexo? Fale com a gente, é a mesma classificação já usada para calcular o seu DAS hoje. Este simulador cobre os Anexos I, II e III.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">2</span> Em qual faixa de faturamento bruto dos últimos 12 meses (RBT12) sua empresa está?</h2>
+    <div class="faixa-options" id="faixaOptions"></div>
+    <p class="hint" style="margin-top:10px;">Escolha a faixa aproximada. Para calcular a alíquota, usamos o meio de cada faixa como referência, o que já dá uma boa estimativa para a maioria dos casos.</p>
+    <span class="exact-toggle" id="exactToggle">Sei o valor exato do meu faturamento dos últimos 12 meses</span>
+    <div id="exactBox">
+      <div class="field">
+        <label for="rbt12Exato">Faturamento bruto exato dos últimos 12 meses</label>
+        <input type="text" id="rbt12Exato" inputmode="decimal" placeholder="Ex: 1.200.000,00">
+        <div class="hint">Se preenchido, este valor substitui a faixa escolhida acima para um cálculo mais preciso.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">3</span> Números do mês</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="fatMes">Faturamento do mês que você quer calcular</label>
+        <input type="text" id="fatMes" inputmode="decimal" placeholder="Ex: 100.000,00">
+        <div class="hint">Se não souber, pode usar o faturamento anual dividido por 12 como estimativa.</div>
+      </div>
+      <div class="field">
+        <label for="compras">Compras / custos do mês com direito a crédito</label>
+        <input type="text" id="compras" inputmode="decimal" placeholder="Ex: 60.000,00">
+        <div class="hint">Notas de fornecedores e insumos que geram crédito de CBS/IBS no regime híbrido.</div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="aliqGeral">Alíquota geral estimada de CBS + IBS fora do DAS (regime híbrido)</label>
+      <div class="slider-row">
+        <input type="range" id="aliqGeral" min="24" max="30" step="0.1" value="26.5">
+        <div class="slider-val" id="aliqGeralVal">26,5%</div>
+      </div>
+      <div class="hint">A alíquota final do regime geral ainda depende de regulamentação. As estimativas oficiais variam entre aproximadamente 26,5% e 28%. Você pode ajustar para ver a sensibilidade do resultado.</div>
+    </div>
+    <div class="field checkbox-field">
+      <label class="checkbox-label">
+        <input type="checkbox" id="reducaoSaude">
+        Minha atividade tem redução de 60% de IBS/CBS (SERVIÇOS DE SAÚDE)
+      </label>
+      <div class="hint">Vale para atividades de saúde previstas na LC 214/2025 (médicos, dentistas, fisioterapeutas, clínicas, laboratórios, psicólogos, entre outras). Se marcado, a alíquota geral acima é reduzida em 60% só no cálculo do regime híbrido.</div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="calc" onclick="calcular()">Calcular</button>
+  </div>
+
+  <div class="card" id="resultado">
+    <h2><span class="num">4</span> Resultado da simulação</h2>
+    <div id="faixaInfo"></div>
+
+    <div class="compare">
+      <div class="result-box atual">
+        <div class="label">DAS hoje</div>
+        <div class="value" id="valAtual">R$ 0,00</div>
+        <div class="sub">Guia única, do jeito atual</div>
+      </div>
+      <div class="result-box puro">
+        <div class="label">Regime Puro (2027)</div>
+        <div class="value" id="valPuro">R$ 0,00</div>
+        <div class="sub">IBS e CBS continuam dentro do DAS</div>
+      </div>
+      <div class="result-box hibrido">
+        <div class="label">Regime Híbrido (2027)</div>
+        <div class="value" id="valHibrido">R$ 0,00</div>
+        <div class="sub">IBS e CBS apurados fora do DAS, com crédito</div>
+      </div>
+    </div>
+
+    <div class="verdict" id="verdictBox"></div>
+
+    <details class="breakdown">
+      <summary>Ver como esse número foi calculado</summary>
+      <table class="detail" id="tabelaDetalhe"></table>
+      <div class="note" id="notaAnexo"></div>
+    </details>
+  </div>
+
+  <div class="social-row">
+    <a class="social-btn" href="https://www.instagram.com/contadorajessicap/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      Instagram
+    </a>
+    <a class="social-btn" href="https://www.tiktok.com/@contadorajessicap" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82a4.28 4.28 0 0 1-3.16-1.45v9.65a4.5 4.5 0 1 1-4.5-4.5c.16 0 .32.01.48.03v2.53a1.97 1.97 0 0 0-.48-.06 1.97 1.97 0 1 0 1.97 1.97V2h2.53a4.28 4.28 0 0 0 3.16 3.4v2.42Z"/></svg>
+      TikTok
+    </a>
+    <a class="social-btn" href="https://www.youtube.com/@contadorajessicap" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2s-.21-1.5-.87-2.16c-.83-.87-1.76-.87-2.19-.92C15.4 4 12 4 12 4h-.01s-3.4 0-6.53.12c-.43.05-1.36.05-2.19.92C2.61 5.7 2.4 7.2 2.4 7.2S2.18 8.95 2.18 10.7v1.6c0 1.75.22 3.5.22 3.5s.21 1.5.87 2.16c.83.87 1.92.84 2.4.94 1.74.17 7.33.22 7.33.22s3.4 0 6.53-.13c.43-.05 1.36-.05 2.19-.92.66-.66.87-2.16.87-2.16s.22-1.75.22-3.5v-1.6c0-1.75-.22-3.5-.22-3.5ZM9.95 14.6V8.8l5.6 2.9-5.6 2.9Z"/></svg>
+      YouTube
+    </a>
+    <a class="social-btn" href="https://wa.me/5543988557181" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.61 15.13L2 22l4.99-1.31A10 10 0 1 0 12 2Zm0 18.13a8.1 8.1 0 0 1-4.14-1.14l-.3-.18-3.02.79.81-2.94-.2-.3A8.13 8.13 0 1 1 12 20.13Zm4.46-6.08c-.24-.12-1.44-.71-1.66-.79-.22-.08-.39-.12-.55.12-.16.24-.63.79-.78.95-.14.16-.28.18-.53.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.11-.5.12-.12.28-.31.42-.47.14-.16.18-.28.28-.46.1-.18.05-.34-.02-.47-.08-.12-.5-1.2-.68-1.65-.18-.44-.37-.38-.5-.38-.13 0-.28-.01-.43-.01-.15 0-.39.06-.6.29-.2.24-.79.77-.79 1.86s.81 2.15.92 2.3c.12.16 1.63 2.5 3.98 3.4 2.35.9 2.35.6 2.77.56.43-.04 1.4-.57 1.6-1.13.2-.55.2-1.02.14-1.13-.06-.1-.24-.16-.48-.28Z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+
+  <footer>
+    Este simulador usa alíquotas e regras vigentes até a data de hoje, com estimativas para pontos ainda não regulamentados, como a alíquota geral fora do DAS.
+  </footer>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Base de dados dos Anexos I, II e III do Simples Nacional.
+// Percentuais de repartição = fração da ALÍQUOTA EFETIVA que hoje
+// corresponde a cada tributo. Fonte: tabelas oficiais dos Anexos
+// I, II e III da LC 123/2006, conforme planilha de referência do
+// escritório.
+// ---------------------------------------------------------------
+const FAIXA_LIMITES = [180000, 360000, 720000, 1800000, 3600000, 4800000];
+const FAIXA_LABELS = [
+  "até R$ 180.000,00",
+  "até R$ 360.000,00",
+  "até R$ 720.000,00",
+  "até R$ 1.800.000,00",
+  "até R$ 3.600.000,00",
+  "até R$ 4.800.000,00",
+];
+// Ponto médio de cada faixa, usado como RBT12 de referência quando o
+// cliente não informa o valor exato.
+const FAIXA_MEIO = [90000, 270000, 540000, 1260000, 2700000, 4200000];
+
+const ANEXOS = {
+  I: {
+    nome: "Anexo I, Comércio",
+    ibsLabel: "ICMS",
+    faixas: [
+      { aliq: 0.04,  ded: 0,      CPP: 0.415, CSLL: 0.035, IBS: 0.34,  IRPJ: 0.055, COFINS: 0.1274, PIS: 0.0276, IPI: 0 },
+      { aliq: 0.073, ded: 5940,   CPP: 0.415, CSLL: 0.035, IBS: 0.34,  IRPJ: 0.055, COFINS: 0.1274, PIS: 0.0276, IPI: 0 },
+      { aliq: 0.095, ded: 13860,  CPP: 0.42,  CSLL: 0.035, IBS: 0.335, IRPJ: 0.055, COFINS: 0.1274, PIS: 0.0276, IPI: 0 },
+      { aliq: 0.107, ded: 22500,  CPP: 0.42,  CSLL: 0.035, IBS: 0.335, IRPJ: 0.055, COFINS: 0.1274, PIS: 0.0276, IPI: 0 },
+      { aliq: 0.143, ded: 87300,  CPP: 0.42,  CSLL: 0.035, IBS: 0.335, IRPJ: 0.055, COFINS: 0.1274, PIS: 0.0276, IPI: 0 },
+      { aliq: 0.19,  ded: 378000, CPP: 0.421, CSLL: 0.1,   IBS: 0,     IRPJ: 0.135, COFINS: 0.2827, PIS: 0.0613, IPI: 0 },
+    ],
+  },
+  II: {
+    nome: "Anexo II, Indústria",
+    ibsLabel: "ICMS",
+    faixas: [
+      { aliq: 0.045, ded: 0,      CPP: 0.375, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.055, COFINS: 0.1151, PIS: 0.0249, IPI: 0.075 },
+      { aliq: 0.078, ded: 5940,   CPP: 0.375, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.055, COFINS: 0.1151, PIS: 0.0249, IPI: 0.075 },
+      { aliq: 0.10,  ded: 13860,  CPP: 0.375, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.055, COFINS: 0.1151, PIS: 0.0249, IPI: 0.075 },
+      { aliq: 0.112, ded: 22500,  CPP: 0.375, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.055, COFINS: 0.1151, PIS: 0.0249, IPI: 0.075 },
+      { aliq: 0.147, ded: 85500,  CPP: 0.375, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.055, COFINS: 0.1151, PIS: 0.0249, IPI: 0.075 },
+      { aliq: 0.30,  ded: 720000, CPP: 0.235, CSLL: 0.075, IBS: 0,     IRPJ: 0.085, COFINS: 0.2096, PIS: 0.0454, IPI: 0.35  },
+    ],
+  },
+  III: {
+    nome: "Anexo III, Serviços em geral",
+    ibsLabel: "ISS",
+    faixas: [
+      { aliq: 0.06,  ded: 0,      CPP: 0.434, CSLL: 0.035, IBS: 0.335, IRPJ: 0.04,  COFINS: 0.1282, PIS: 0.0278, IPI: 0 },
+      { aliq: 0.112, ded: 9360,   CPP: 0.434, CSLL: 0.035, IBS: 0.32,  IRPJ: 0.04,  COFINS: 0.1405, PIS: 0.0305, IPI: 0 },
+      { aliq: 0.135, ded: 17640,  CPP: 0.434, CSLL: 0.035, IBS: 0.325, IRPJ: 0.04,  COFINS: 0.1364, PIS: 0.0296, IPI: 0 },
+      { aliq: 0.16,  ded: 35640,  CPP: 0.434, CSLL: 0.035, IBS: 0.325, IRPJ: 0.04,  COFINS: 0.1364, PIS: 0.0296, IPI: 0 },
+      { aliq: 0.21,  ded: 125640, CPP: 0.434, CSLL: 0.035, IBS: 0.335, IRPJ: 0.04,  COFINS: 0.1282, PIS: 0.0278, IPI: 0 },
+      { aliq: 0.33,  ded: 648000, CPP: 0.305, CSLL: 0.15,  IBS: 0,     IRPJ: 0.35,  COFINS: 0.1603, PIS: 0.0347, IPI: 0 },
+    ],
+  },
+};
+
+let anexoSelecionado = null;
+let faixaSelecionadaIdx = null;
+
+function formatPct(v) {
+  return (v * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+}
+
+function renderFaixaOptions() {
+  const container = document.getElementById("faixaOptions");
+  container.innerHTML = FAIXA_LABELS.map((label, i) => {
+    const activeClass = faixaSelecionadaIdx === i ? " active" : "";
+    return `<div class="faixa-btn${activeClass}" data-faixa="${i}">
+      <span class="rng">${i + 1}ª faixa, ${label}</span>
+    </div>`;
+  }).join("");
+
+  container.querySelectorAll(".faixa-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      faixaSelecionadaIdx = parseInt(btn.dataset.faixa, 10);
+      renderFaixaOptions();
+    });
+  });
+}
+renderFaixaOptions();
+
+document.querySelectorAll(".anexo-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".anexo-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    anexoSelecionado = btn.dataset.anexo;
+  });
+});
+
+document.getElementById("exactToggle").addEventListener("click", () => {
+  const box = document.getElementById("exactBox");
+  box.style.display = box.style.display === "block" ? "none" : "block";
+});
+
+document.getElementById("aliqGeral").addEventListener("input", (e) => {
+  document.getElementById("aliqGeralVal").textContent = parseFloat(e.target.value).toFixed(1).replace(".", ",") + "%";
+});
+
+function parseMoeda(str) {
+  if (!str) return NaN;
+  const cleaned = str.replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+  return parseFloat(cleaned);
+}
+
+function formatBRL(v) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function getFaixaIndex(rbt12) {
+  for (let i = 0; i < FAIXA_LIMITES.length; i++) {
+    if (rbt12 <= FAIXA_LIMITES[i]) return i;
+  }
+  return FAIXA_LIMITES.length - 1; // acima do limite do Simples: usa última faixa como referência
+}
+
+function calcular() {
+  const errBox = document.getElementById("errorMsg");
+  errBox.style.display = "none";
+
+  if (!anexoSelecionado) {
+    errBox.textContent = "Selecione o Anexo do Simples da sua empresa.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  const rbt12Exato = parseMoeda(document.getElementById("rbt12Exato").value);
+  let rbt12, faixaIdx, usouValorExato = false;
+
+  if (!isNaN(rbt12Exato) && rbt12Exato > 0) {
+    rbt12 = rbt12Exato;
+    faixaIdx = getFaixaIndex(rbt12);
+    usouValorExato = true;
+  } else if (faixaSelecionadaIdx !== null) {
+    faixaIdx = faixaSelecionadaIdx;
+    rbt12 = FAIXA_MEIO[faixaIdx];
+  } else {
+    errBox.textContent = "Escolha a faixa de faturamento dos últimos 12 meses, ou informe o valor exato.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  const fatMes = parseMoeda(document.getElementById("fatMes").value);
+  const compras = parseMoeda(document.getElementById("compras").value) || 0;
+  const aliqGeralInformada = parseFloat(document.getElementById("aliqGeral").value) / 100;
+  const temReducaoSaude = document.getElementById("reducaoSaude").checked;
+  const aliqGeral = temReducaoSaude ? aliqGeralInformada * 0.4 : aliqGeralInformada;
+
+  if (isNaN(fatMes) || fatMes <= 0) {
+    errBox.textContent = "Preencha o faturamento do mês com um valor válido.";
+    errBox.style.display = "block";
+    return;
+  }
+  if (rbt12 > 4800000) {
+    errBox.textContent = "Faturamento acima do limite do Simples Nacional (R$ 4.800.000,00). Esta empresa não se enquadraria no regime. Revise o valor informado.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  const anexo = ANEXOS[anexoSelecionado];
+  const faixa = anexo.faixas[faixaIdx];
+
+  // Alíquota efetiva = (RBT12 * alíquota nominal - dedução) / RBT12
+  const aliqEfetiva = Math.max(0, (rbt12 * faixa.aliq - faixa.ded) / rbt12);
+
+  // DAS hoje / DAS regime Puro (o valor pago pela empresa não muda no Puro,
+  // o que muda é apenas quanto desse valor conta como crédito para o cliente PJ)
+  const dasAtual = fatMes * aliqEfetiva;
+  const dasPuro = dasAtual;
+
+  // Parcela da alíquota efetiva que corresponde a CBS (PIS+COFINS) e a IBS (ICMS/ISS)
+  const fracCBS = faixa.COFINS + faixa.PIS;
+  const fracIBS = faixa.IBS;
+  const fracRemanesceDAS = Math.max(0, 1 - fracCBS - fracIBS); // CPP + IRPJ + CSLL (+ IPI no Anexo II)
+
+  // Híbrido: Guia 1 (dentro do DAS) = tudo que não é CBS/IBS
+  const guia1 = fatMes * aliqEfetiva * fracRemanesceDAS;
+  // Híbrido: Guia 2 (fora do DAS) = CBS+IBS não cumulativos, à alíquota geral, sobre o valor agregado
+  const baseAgregada = Math.max(0, fatMes - compras);
+  const guia2 = baseAgregada * aliqGeral;
+  const dasHibrido = guia1 + guia2;
+
+  // --- Render ---
+  document.getElementById("resultado").style.display = "block";
+
+  const faixaNum = faixaIdx + 1;
+  const origemTxt = usouValorExato ? "com base no valor exato informado" : "estimada pelo meio da faixa escolhida";
+  document.getElementById("faixaInfo").innerHTML =
+    `<span class="faixa-badge">${anexo.nome} · ${faixaNum}ª Faixa · Alíquota efetiva ${origemTxt}: ${formatPct(aliqEfetiva)}</span>`;
+
+  document.getElementById("valAtual").textContent = formatBRL(dasAtual);
+  document.getElementById("valPuro").textContent = formatBRL(dasPuro);
+  document.getElementById("valHibrido").textContent = formatBRL(dasHibrido);
+
+  const diff = dasHibrido - dasPuro;
+  const diffPct = dasPuro > 0 ? (diff / dasPuro) * 100 : 0;
+  let verdictHTML = "";
+  if (Math.abs(diffPct) < 1) {
+    verdictHTML = `Com os números informados, o valor a pagar é <strong>muito parecido</strong> nos dois regimes. Nesse caso, a decisão deve olhar menos para o valor do imposto e mais para o <strong>perfil dos seus clientes</strong>. Se você vende para outras empresas, o crédito integral do regime híbrido pode pesar comercialmente mesmo com valores próximos.`;
+  } else if (diff > 0) {
+    verdictHTML = `Com os números informados, o regime híbrido resultaria em <strong>${formatBRL(diff)} a mais por mês</strong> (${diffPct.toFixed(1)}%) do que o regime puro. Isso só compensaria se esse custo adicional for revertido em competitividade comercial, por exemplo, se seus clientes pessoa jurídica valorizarem o crédito integral de CBS/IBS.`;
+  } else {
+    verdictHTML = `Com os números informados, o regime híbrido resultaria em <strong>${formatBRL(Math.abs(diff))} a menos por mês</strong> (${Math.abs(diffPct).toFixed(1)}%) do que o regime puro, principalmente pelo crédito sobre as compras informadas. Vale conversar com a gente para confirmar esse resultado com seus dados completos antes de decidir.`;
+  }
+  document.getElementById("verdictBox").innerHTML = verdictHTML;
+
+  document.getElementById("tabelaDetalhe").innerHTML = `
+    <tr><th>Item</th><th style="text-align:right">Valor</th></tr>
+    <tr><td>Faturamento dos últimos 12 meses usado no cálculo</td><td class="num">${formatBRL(rbt12)}${usouValorExato ? " (valor exato)" : " (meio da faixa)"}</td></tr>
+    <tr><td>Alíquota nominal da faixa</td><td class="num">${formatPct(faixa.aliq)}</td></tr>
+    <tr><td>Valor a deduzir</td><td class="num">${formatBRL(faixa.ded)}</td></tr>
+    <tr><td>Alíquota efetiva calculada</td><td class="num">${formatPct(aliqEfetiva)}</td></tr>
+    <tr><td>Parcela equivalente a CBS (PIS + Cofins)</td><td class="num">${formatPct(fracCBS)} da alíquota efetiva</td></tr>
+    <tr><td>Parcela equivalente a IBS (${anexo.ibsLabel})</td><td class="num">${formatPct(fracIBS)} da alíquota efetiva</td></tr>
+    <tr><td>Permanece no DAS mesmo no híbrido (CPP, IRPJ, CSLL${anexoSelecionado === "II" ? ", IPI" : ""})</td><td class="num">${formatPct(fracRemanesceDAS)} da alíquota efetiva</td></tr>
+    <tr><td><strong>Guia 1, dentro do DAS (híbrido)</strong></td><td class="num"><strong>${formatBRL(guia1)}</strong></td></tr>
+    ${temReducaoSaude ? `<tr><td>Alíquota geral informada, antes da redução de saúde</td><td class="num">${formatPct(aliqGeralInformada)}</td></tr>
+    <tr><td>Alíquota geral após redução de 60% (saúde)</td><td class="num">${formatPct(aliqGeral)}</td></tr>` : ""}
+    <tr><td><strong>Guia 2, fora do DAS, sobre faturamento menos compras (${(aliqGeral*100).toFixed(1)}%)</strong></td><td class="num"><strong>${formatBRL(guia2)}</strong></td></tr>
+  `;
+
+  document.getElementById("notaAnexo").innerHTML =
+    `Faturamento do mês informado: ${formatBRL(fatMes)}. Compras com crédito informadas: ${formatBRL(compras)}. ` +
+    (anexoSelecionado === "II" ? "No Anexo II, o IPI foi mantido dentro do DAS nesta simulação, por simplicidade. " : "") +
+    (faixaIdx === 5 ? `Na 6ª faixa, o ${anexo.ibsLabel} já é recolhido fora do DAS nas regras atuais, por isso não aparece na parcela de IBS. ` : "") +
+    (temReducaoSaude ? `A redução de 60% de saúde foi aplicada sobre a alíquota geral usada na Guia 2 (de ${formatPct(aliqGeralInformada)} para ${formatPct(aliqGeral)}). Ela não altera o cálculo do DAS hoje nem do regime Puro, que seguem a tabela padrão do Simples. ` : "") +
+    `Este cálculo não considera outras reduções setoriais específicas, que podem alterar o resultado para o seu ramo de atividade.`;
+
+  document.getElementById("resultado").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+</script>
+</body>
+</html>
